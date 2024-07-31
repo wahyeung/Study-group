@@ -1,30 +1,42 @@
-import LandingPage from '../support/page-objects/Landing.page'
-import HomePage from '../support/page-objects/Home-page'
-
 describe('Login Test', () => {
-    it('Test case 1', () => {
-        LandingPage.visit()
-        LandingPage.getTitle().should('eq', 'Swag Labs')
+    beforeEach(() => {
+        cy.visit('https://www.saucedemo.com/')
     })
 
-    it('Test case 2', () => {
-        LandingPage.visit()
-        LandingPage.login('123@example.com', 'secret_sauce')
-        LandingPage.verifyUrl()
-        LandingPage.getErrorMessage().should('contain', 'Epic sadface: Username and password do not match any user in this service')
+    describe('Positive Tests', () => {
+        it('Should successfully load the login page', () => {
+            cy.title().should('eq', 'Swag Labs')
+        })
+
+        it('Should successfully login with valid credentials', () => {
+            cy.get('[data-test="username"]').type('standard_user')
+            cy.get('[data-test="password"]').type('secret_sauce')
+            cy.get('[data-test="login-button"]').click()
+            cy.url().should('include', '/inventory.html')
+        })
+
+        it('Should successfully logout', () => {
+     
+            cy.get('[data-test="username"]').type('standard_user')
+            cy.get('[data-test="password"]').type('secret_sauce')
+            cy.get('[data-test="login-button"]').click()
+            cy.url().should('include', '/inventory.html')
+
+         
+            cy.get('#react-burger-menu-btn').click()
+            cy.get('[data-test="logout-sidebar-link"]').click()
+            cy.url().should('eq', 'https://www.saucedemo.com/')
+            cy.get('[data-test="login-button"]').should('be.visible')
+        })
     })
 
-    it('Test case 3', () => {
-        LandingPage.visit()
-        LandingPage.login('standard_user', 'secret_sauce')
-        HomePage.verifyUrl()
-    })
-
-    it('Test case 0', () => {
-        LandingPage.visit()
-        LandingPage.login('standard_user', 'secret_sauce')
-        HomePage.logout()
-        LandingPage.verifyUrl()
-        LandingPage.verifyLoginButtonVisible()
+    describe('Negative Tests', () => {
+        it('Should display error for invalid login', () => {
+            cy.get('[data-test="username"]').type('123@example.com')
+            cy.get('[data-test="password"]').type('secret_sauce')
+            cy.get('[data-test="login-button"]').click()
+            cy.url().should('eq', 'https://www.saucedemo.com/')
+            cy.get('[data-test="error"]').should('contain', 'Epic sadface: Username and password do not match any user in this service')
+        })
     })
 })
